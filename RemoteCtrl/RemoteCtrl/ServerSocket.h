@@ -7,17 +7,23 @@ class CPacket
 {
 public:
 	CPacket() : sHead(0), nLength(0), sCmd(0), sSum(0) {}
-	CPacket(WORD cmd, const BYTE* pData, size_t nSzie) {
+	CPacket(WORD nCmd, const BYTE* pData, size_t nSzie) {
 		sHead = 0xFEFF;
 		nLength = nSzie + 4;
-		sCmd = cmd;
-		strData.resize(nSzie);
-		memcpy((void*)strData.c_str(), pData, nSzie);
-		sSum = 0;
-		for(size_t i=0; i<strData.size(); i++) {
-			sSum += BYTE(strData[i]) & 0xFF;
+		sCmd = nCmd;
+		if (nSzie > 0) {
+			strData.resize(nSzie);
+			memcpy((void*)strData.c_str(), pData, nSzie);
+		}
+		else {
+			strData.clear();
 		}
 
+		sSum = 0;
+		for (size_t i = 0; i < strData.size(); i++)
+		{
+			sSum += BYTE(strData[i]) & 0xFF;
+		}
 	}
 	CPacket(const CPacket& packet) {
 		sHead = packet.sHead;
@@ -158,7 +164,7 @@ public:
 		return send(m_client, pack.Data(), pack.size(), 0) > 0;
 	}
 	bool GetFilePath(std::string& strPath) {
-		if (m_packet.sCmd == 2) {
+		if (m_packet.sCmd >= 2 && m_packet.sCmd <= 4) {
 			strPath = m_packet.strData;
 			return true;
 		}
